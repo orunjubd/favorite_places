@@ -1,7 +1,7 @@
 import 'package:path/path.dart' as path;
 import 'package:sqflite/sqflite.dart' as sql;
 
-import 'package:favorite_places/models/place.dart';
+import 'package:favorite_places/features/places/models/place.dart';
 
 class DBHelper {
   static Future<sql.Database> database() async {

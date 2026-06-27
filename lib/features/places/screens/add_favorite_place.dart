@@ -3,10 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:favorite_places/models/place.dart';
-import 'package:favorite_places/providers/user_places_provider.dart';
-import 'package:favorite_places/widgets/image_input.dart';
-import 'package:favorite_places/widgets/location_input.dart';
+import 'package:favorite_places/features/places/models/place.dart';
+import 'package:favorite_places/features/places/providers/user_places_provider.dart';
+import 'package:favorite_places/features/places/widgets/image_input.dart';
+import 'package:favorite_places/features/places/widgets/location_input.dart';
 
 class AddFavoritePlace extends ConsumerStatefulWidget {
   const AddFavoritePlace({super.key});

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:favorite_places/providers/user_places_provider.dart';
-import 'package:favorite_places/screens/add_favorite_place.dart';
-import 'package:favorite_places/widgets/favorite_place.dart';
+import 'package:favorite_places/features/places/providers/user_places_provider.dart';
+import 'package:favorite_places/features/places/screens/add_favorite_place.dart';
+import 'package:favorite_places/features/places/widgets/favorite_place.dart';
 
 class FavoritePlaceScreen extends ConsumerStatefulWidget {
   const FavoritePlaceScreen({super.key});

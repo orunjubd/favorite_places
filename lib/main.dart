@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:favorite_places/screens/favorite_place_screen.dart';
+import 'package:favorite_places/features/places/screens/favorite_place_screen.dart';
 
 final ColorScheme colorScheme = ColorScheme.fromSeed(
   seedColor: const Color.fromARGB(255, 63, 17, 177),

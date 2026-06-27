@@ -1,0 +1,72 @@
+================================================================================
+FAVORITE PLACES APP - ENTERPRISE FEATURE-FIRST ARCHITECTURE BLUEPRINT
+================================================================================
+
+1. PROJECT DIRECTORY STRUCTURAL TREE LAYOUT
+────────────────────────────────────────────────────────────────────────────────
+lib/
+│
+├── features/
+│   └── places/
+│       ├── models/
+│       │   └── place.dart                # Place and PlaceLocation structural models
+│       │
+│       ├── providers/
+│       │   └── user_places_provider.dart # Riverpod pure state notifier streams
+│       │
+│       ├── repository/
+│       │   └── place_repository.dart     # Central data orchestrator (Web & Disk)
+│       │
+│       ├── services/
+│       │   └── location_service.dart     # OSM Nominatim API background http helper
+│       │
+│       ├── helpers/
+│       │   └── db_helper.dart            # Pure SQLite table initialization & rows engine
+│       │
+│       ├── screens/
+│       │   ├── favorite_place_screen.dart # Main listing dashboard viewport
+│       │   ├── add_favorite_place.dart   # Input entry form view container
+│       │   └── map_screen.dart           # Full-screen interactive map picker
+│       │
+│       └── widgets/
+│           ├── favorite_place.dart       # Scrolling ListTile builder rows display
+│           ├── image_input.dart          # Camera picture snapshot capture controller
+│           └── location_input.dart       # Coordinates passing layout block preview
+│
+├── shared/
+│   ├── theme/
+│   │   └── app_theme.dart                # Global styling canvas palettes
+│   ├── widgets/
+│   └── utils/
+│
+└── main.dart                             # Application initialization root
+
+
+2. DATA FLOW STREAM PIPELINE LOGIC SYNCHRONIZATION
+────────────────────────────────────────────────────────────────────────────────
+ ┌────────────────┐
+ │   UI Widgets   │  <- Triggers view layouts, captures taps & input keystrokes
+ └───────┬────────┘
+         │
+         ▼
+ ┌────────────────┐
+ │ Riverpod State │  <- Manages reactive memory lists; watches for state changes
+ └───────┬────────┘
+         │
+         ▼
+ ┌────────────────┐
+ │ PlaceRepository│  <- Master coordinator; controls where data flows
+ └───────┬────────┘
+         │
+         ├──────────────────────────────┐
+         ▼                              ▼
+ ┌───────────────┐              ┌───────────────┐
+ │LocationService│              │   DBHelper    │
+ └───────┬───────┘              └───────┬───────┘
+         │                              │
+         ▼                              ▼
+ ┌───────────────┐              ┌───────────────┐
+ │ OSM Web API   │ (Bengali Address)│SQLite Memory  │ (Persistent storage rows)
+ └───────────────┘              └───────────────┘
+
+================================================================================

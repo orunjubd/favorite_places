@@ -1,12 +1,12 @@
-import 'dart:convert';
+//import 'dart:convert';
 import 'package:location/location.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as jj;
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+//import 'package:http/http.dart' as http;
 
-import 'package:favorite_places/models/place.dart';
-import 'package:favorite_places/screens/map_screen.dart';
+import 'package:favorite_places/features/places/models/place.dart';
+import 'package:favorite_places/features/places/screens/map_screen.dart';
 
 class LocationInput extends StatefulWidget {
   const LocationInput({super.key, required this.onSelectLocation});
@@ -52,13 +52,11 @@ class _LocationInputState extends State<LocationInput> {
   // }
 
   void _selectOnMap() async {
-    // 1. Set up a starting position object
     PlaceLocation startingLocation = const PlaceLocation(
       latitude: 23.7439,
       longitude: 90.4228,
-    ); // Default to Dhaka
+    );
 
-    // 2. ✅ FIX: If you already clicked "Current Location", use those real coordinates instead of California!
     if (_pickedLocation != null) {
       startingLocation = PlaceLocation(
         latitude: _pickedLocation!.latitude!,
@@ -66,113 +64,92 @@ class _LocationInputState extends State<LocationInput> {
       );
     }
 
-    final jj.LatLng? pickedData = await Navigator.of(context).push<jj.LatLng>(
+    final pickedData = await Navigator.of(context).push<jj.LatLng>(
       MaterialPageRoute(
-        builder: (ctx) => MapScreen(
-          location: startingLocation, // 👈 Pass the dynamic location here!
-          isSelecting: true,
-        ),
+        builder: (ctx) =>
+            MapScreen(location: startingLocation, isSelecting: true),
       ),
     );
 
     if (pickedData == null) return;
 
     setState(() {
-      _isGettingLocation = true; // Turn on spinner while fetching text address
-    });
-
-    // 🟢 FETCH THE REAL OSM STREET ADDRESS FOR THE CHOSEN PIN TAP
-    final readableAddress = await _getReadableAddress(
-      pickedData.latitude,
-      pickedData.longitude,
-    );
-
-    setState(() {
-      _isGettingLocation = false;
       _pickedLocation = LocationData.fromMap({
         'latitude': pickedData.latitude,
         'longitude': pickedData.longitude,
       });
     });
 
+    // Pass map-tapped coordinates straight up to your form view
     widget.onSelectLocation(
       PlaceLocation(
         latitude: pickedData.latitude,
         longitude: pickedData.longitude,
-        address: readableAddress,
       ),
     );
   }
 
   // Helper method that converts Lat/Long numbers to real text address strings
-  Future<String> _getReadableAddress(double lat, double lon) async {
-    // OpenStreetMap Nominatim free reverse API endpoint
-    final url = Uri.parse(
-      'https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lon&addressdetails=1&namedetails=1&extratags=1&accept-language=bn',
-    );
-
-    try {
-      // Nominatim usage guidelines require a custom User-Agent identifying your application
-      final response = await http.get(
-        url,
-        //https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lon&addressdetails=1&namedetails=1&extratags=1&accept-language=en
-        headers: {
-          'User-Agent': 'favorite_places_app_learning_project',
-          'Accept-Language': 'bn',
-          'Accept': 'Application/json',
-          'From': 'orunjubd@gmail.com',
-        },
-        // params: {
-        //   'format': 'json',
-        //   'lat': lat.toString(),
-        //   'lon': lon.toString(),
-        //   'addressdetails': '1',
-        //   'namedetails': '1',
-        //   'extratags': '1',
-        //   'accept-language': 'en',
-        //   },
-      );
-
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        // Extracts the full combined display address text block
-        return responseData['display_name'] ?? 'Unknown Location';
-      }
-    } catch (e) {
-      print('Geocoding failed: $e');
-    }
-    return 'Coordinates Set'; // Fallback if internet drops
-  }
+  // Future<String> _getReadableAddress(double lat, double lon) async {
+  //   // OpenStreetMap Nominatim free reverse API endpoint
+  //   final url = Uri.parse(
+  //     'https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lon&addressdetails=1&namedetails=1&extratags=1&accept-language=bn',
+  //   );
+  //   try {
+  //     // Nominatim usage guidelines require a custom User-Agent identifying your application
+  //     final response = await http.get(
+  //       url,
+  //       //https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lon&addressdetails=1&namedetails=1&extratags=1&accept-language=en
+  //       headers: {
+  //         'User-Agent': 'favorite_places_app_learning_project',
+  //         'Accept-Language': 'bn',
+  //         'Accept': 'Application/json',
+  //         'From': 'orunjubd@gmail.com',
+  //       },
+  //       // params: {
+  //       //   'format': 'json',
+  //       //   'lat': lat.toString(),
+  //       //   'lon': lon.toString(),
+  //       //   'addressdetails': '1',
+  //       //   'namedetails': '1',
+  //       //   'extratags': '1',
+  //       //   'accept-language': 'en',
+  //       //   },
+  //     );
+  //     if (response.statusCode == 200) {
+  //       final responseData = jsonDecode(response.body);
+  //       // Extracts the full combined display address text block
+  //       return responseData['display_name'] ?? 'Unknown Location';
+  //     }
+  //   } catch (e) {
+  //     print('Geocoding failed: $e');
+  //   }
+  //   return 'Coordinates Set'; // Fallback if internet drops
+  // }
 
   void _getCurrentUserLocation() async {
     Location location = Location();
-
     bool serviceEnabled;
     PermissionStatus permissionGranted;
-    LocationData locationData;
 
     try {
       serviceEnabled = await location.serviceEnabled();
       if (!serviceEnabled) {
         serviceEnabled = await location.requestService();
-        if (!serviceEnabled) {
-          return;
-        }
+        if (!serviceEnabled) return;
       }
 
       permissionGranted = await location.hasPermission();
       if (permissionGranted == PermissionStatus.denied) {
         permissionGranted = await location.requestPermission();
-        if (permissionGranted != PermissionStatus.granted) {
-          return;
-        }
+        if (permissionGranted != PermissionStatus.granted) return;
       }
 
       setState(() {
-        _isGettingLocation = true; // Turn spinner on
+        _isGettingLocation = true;
       });
 
-      locationData = await location.getLocation();
+      final locationData = await location.getLocation();
 
       if (locationData.latitude == null || locationData.longitude == null) {
         setState(() {
@@ -181,39 +158,23 @@ class _LocationInputState extends State<LocationInput> {
         return;
       }
 
-      // 🟢 1. FETCH THE REAL OSM STREET ADDRESS TEXT FIRST
-      final readableAddress = await _getReadableAddress(
-        locationData.latitude!,
-        locationData.longitude!,
-      );
-
       setState(() {
-        // ✅ 2. MOVED STATE UPDATES HERE: Safely update data and close spinner together
         _isGettingLocation = false;
         _pickedLocation = locationData;
       });
 
-      // ✅ 3. FIXED CALLBACK NAME: Swapped 'onPickLocation' to 'onSelectLocation'
+      // Pass raw coordinates straight up. The backend repository will translate them later!
       widget.onSelectLocation(
         PlaceLocation(
           latitude: locationData.latitude!,
           longitude: locationData.longitude!,
-          address: readableAddress,
         ),
       );
-
-      //print(locationData.latitude);
-      //print(locationData.longitude);
     } catch (error) {
       if (!mounted) return;
       setState(() {
         _isGettingLocation = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Could not fetch device location coordinates: $error'),
-        ),
-      );
     }
   }
 
