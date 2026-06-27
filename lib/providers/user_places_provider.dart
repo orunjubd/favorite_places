@@ -1,6 +1,8 @@
 import 'dart:io';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart' as syspaths;
+import 'package:path/path.dart' as path;
+
 import 'package:favorite_places/models/place.dart';
 
 // 1.Specify both the Notifier type AND the State Type inside the angle brackets
@@ -21,13 +23,26 @@ class UserPlacesNotifier extends Notifier<List<Place>> {
 
   // 3. Receives both title text string AND image file directly from input forms
   // UPDATED: Now receives the custom PlaceLocation object from the form screen
-  void addPlace(String title, File image, PlaceLocation location) {
-    final newPlace = Place(title: title, image: image, location: location);
-
-    // 4. "state" variable is now recognized automatically by the framework
-    // -- Immutably update state by spreading the current list and adding the new item
-    state = [...state, newPlace];
-    //state = state..addAll(newPlace);
-    //
+  void addPlace(String title, File image, PlaceLocation location) async {
+    try {
+      final appDir = await syspaths.getApplicationDocumentsDirectory();
+      final filename = path.basename(image.path);
+      final imagePath = path.join(appDir.path, filename);
+      //final savedImage = await image.copy('${appDir.path}/$filename'); // this is the old method
+      // alternatively:
+      final savedImage = await image.copy(imagePath);
+      final newPlace = Place(
+        title: title,
+        image: savedImage,
+        location: location,
+      );
+      // 4. "state" variable is now recognized automatically by the framework
+      // -- Immutably update state by spreading the current list and adding the new item
+      state = [...state, newPlace];
+      //state = state..addAll(newPlace);
+    } catch (error) {
+      // Catches real storage errors (e.g. disk is 100% full, permission denied by OS)
+      print('Failed to save file permanently to disk: $error');
+    }
   }
 }
