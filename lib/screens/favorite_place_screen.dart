@@ -1,53 +1,78 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:favorite_places/widgets/favorite_place.dart';
-import 'package:favorite_places/screens/add_favorite_place.dart';
 import 'package:favorite_places/providers/user_places_provider.dart';
+import 'package:favorite_places/screens/add_favorite_place.dart';
+import 'package:favorite_places/widgets/favorite_place.dart';
 
-class FavoritePlaceScreen extends ConsumerWidget {
+class FavoritePlaceScreen extends ConsumerStatefulWidget {
   const FavoritePlaceScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // 1. Live listen to changes in the data array. Rebuilds UI automatically
+  ConsumerState<FavoritePlaceScreen> createState() =>
+      _FavoritePlaceScreenState();
+}
+
+class _FavoritePlaceScreenState extends ConsumerState<FavoritePlaceScreen> {
+  late final Future<void> _placesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _placesFuture = ref.read(userPlacesProvider.notifier).loadPlaces();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final userPlaces = ref.watch(userPlacesProvider);
 
     return Scaffold(
-      // 1. Customize your main scaffold content background body color here
       backgroundColor: const Color.fromARGB(255, 30, 26, 36),
 
       appBar: AppBar(
-        // 2. Customize your Top App Bar background color here
-        backgroundColor: const Color.fromARGB(255, 45, 39, 54),
         title: const Text('Your Places'),
+
+        backgroundColor: const Color.fromARGB(255, 45, 39, 54),
+
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            // 2. Navigates seamlessly over to your input form screen
             onPressed: () {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (ctx) => const AddFavoritePlace()),
+                MaterialPageRoute(builder: (_) => const AddFavoritePlace()),
               );
             },
           ),
         ],
-        // 3. Add a separate custom bottom underline divider using the PreferredSize property
+
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(
-            1.0,
-          ), // The thickness height of your bar line
-          child: Container(
-            color: Colors
-                .white24, // The color styling of your custom separating line
-            height: 1.0,
-          ),
+          preferredSize: const Size.fromHeight(1),
+          child: Container(height: 1, color: Colors.white24),
         ),
       ),
-      // 3. Passes the live data array down to the ListView builder widget
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: FavoritePlaceList(places: userPlaces),
+
+      body: FutureBuilder(
+        future: _placesFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return const Center(
+              child: Text(
+                'Failed to load places.',
+                //style: Theme.of(context).textTheme.titleMedium,
+              ),
+            );
+          }
+
+          return Padding(
+            padding: const EdgeInsets.all(8),
+            child: FavoritePlaceList(places: userPlaces),
+          );
+        },
       ),
     );
   }
